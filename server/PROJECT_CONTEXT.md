@@ -1,7 +1,7 @@
 # InstaClone - Project Context
 
 > Ultima actualizacion: 2026-05-11
-> Estado: Early development - Scaffold completo, sin features implementadas
+> Estado: MVP completo - Auth, Posts, Likes, Comments, Follow, Profile, Cloudinary
 
 ---
 
@@ -25,29 +25,41 @@
 
 ```
 InstaClone/
-├── client/              # Frontend React (Vite)
+├── client/                    # Frontend React (Vite)
 │   ├── public/
 │   │   ├── favicon.svg
 │   │   └── icons.svg
 │   ├── src/
-│   │   ├── assets/       # imagenes (hero.png, logos)
-│   │   ├── App.jsx       # Componente principal (demo Vite)
-│   │   ├── App.css
-│   │   ├── index.css     # Estilos globales
-│   │   └── main.jsx      # Entry point
+│   │   ├── assets/            # imagenes
+│   │   ├── components/        # Navbar, Post, Comment
+│   │   ├── context/           # AuthContext (JWT auth state)
+│   │   ├── pages/             # Home, Login, Register, Profile
+│   │   ├── App.jsx            # Router + AuthProvider
+│   │   ├── index.css          # Instagram-style CSS
+│   │   └── main.jsx
 │   ├── index.html
 │   ├── vite.config.js
 │   ├── eslint.config.js
 │   └── package.json
 │
-├── server/               # Backend Express
-│   ├── index.js          # Server principal + rutas
-│   ├── db.js             # Conexion PostgreSQL
-│   ├── .env              # Variables de entorno
+├── server/                    # Backend Express
+│   ├── config/
+│   │   └── cloudinary.js      # Cloudinary upload config
+│   ├── middleware/
+│   │   └── auth.js            # JWT auth middleware
+│   ├── routes/
+│   │   ├── auth.js            # Register, Login, /me
+│   │   ├── posts.js           # CRUD posts, feed, user posts
+│   │   ├── users.js           # Profile, follow/unfollow
+│   │   ├── comments.js        # CRUD comments
+│   │   └── likes.js           # Like/unlike posts
+│   ├── index.js               # Server + routes
+│   ├── db.js                  # PostgreSQL pool
+│   ├── schema.sql             # Tablas: users, posts, likes, comments, follows
+│   ├── .env                   # Variables (protegido en gitignore)
 │   └── package.json
 │
-├── README.md
-└── .git/
+└── README.md
 ```
 
 ---
@@ -55,21 +67,23 @@ InstaClone/
 ## 3. Estado Actual del Proyecto
 
 ### Implementado
-- Server Express basico con CORS y JSON parsing
-- Conexion a PostgreSQL (localhost:5432, db: `instaclone`)
-- Credenciales hardcodeadas en `server/db.js` (user: postgres, pass: admin123)
-- Endpoints de prueba:
-  - `GET /` -> status de la API
-  - `GET /test-db` -> prueba de conexion a DB
-- JWT_SECRET configurado en .env
+- Auth completo (registro, login, JWT)
+- CRUD de posts con upload a Cloudinary
+- Feed personalizado (posts de usuarios seguidos + propios)
+- Likes (like/unlike posts con contador)
+- Comentarios (agregar/eliminar en posts)
+- Follow/Unfollow system
+- Paginas de perfil con estadisticas
+- Subida de imagenes via Cloudinary + Multer
+- UI responsive estilo Instagram (light/dark mode)
+- Todas las tablas de DB creadas
 
-### Pendiente (del README original)
-- Sistema de autenticacion (registro, login, JWT middleware)
-- Schema de base de datos (tablas: users, posts, comments, likes, follows)
-- API REST completa
-- Subida de imagenes (Cloudinary/S3)
-- UI tipo Instagram
-- Features sociales (likes, comentarios, follows)
+### Pendiente
+- Polishing UI
+- Tests
+- Buscar usuarios para seguir
+- Notifications
+- DM/Chat
 
 ---
 
@@ -79,8 +93,17 @@ InstaClone/
 - **Driver**: `pg` (queries raw, sin ORM)
 - **Host**: localhost:5432
 - **DB name**: `instaclone`
-- **Credenciales**: `postgres / admin123` (hardcoded en `db.js`)
-- **Schema**: NO CREADO - aun no existen tablas
+- **Credenciales**: En `server/.env` (DB_USER, DB_PASSWORD, etc.)
+- **Schema**: Creado (ver `server/schema.sql`)
+
+### Tablas
+| Tabla | Descripcion |
+|-------|-------------|
+| users | id, username, email, password, full_name, bio, profile_picture, created_at |
+| posts | id, user_id, image_url, caption, created_at |
+| likes | id, user_id, post_id (unique constraint) |
+| comments | id, user_id, post_id, content, created_at |
+| follows | id, follower_id, following_id (unique constraint) |
 
 ---
 
@@ -90,9 +113,16 @@ InstaClone/
 ```
 PORT=5000
 JWT_SECRET=instaclone_super_secret_key
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=instaclone
+DB_PASSWORD=admin123
+DB_PORT=5432
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
-> DB credentials NO estan en .env - estan harcodeadas en `server/db.js`
-> **IMPORTANTE**: El archivo `.env` contiene secrets sensibles. NO hacer commit de este archivo. Ya esta en `.gitignore` y fue untracked con `git rm --cached server/.env`.
+> **IMPORTANTE**: El archivo `.env` contiene secrets. NO hacer commit. Protegido en `.gitignore`.
 
 ### Gitignore
 ```
@@ -132,22 +162,34 @@ npm run preview  # Preview build
 
 ## 7. Notas Importantes para el Siguiente Agente
 
-- El frontend `App.jsx` es codigo demo de Vite - necesita ser reemplazado
-- NO hay todavia controllers, routes organizadas ni servicios en backend
-- Credentials de DB en `server/db.js` deberian moverse a .env
-- Frontend usa `"type": "module"` - ES modules
-- Dark mode ya soportado via CSS variables y `prefers-color-scheme`
+- DB credentials ahora en `.env` (no mas hardcoded)
+- Cloudinary integrado con Multer para uploads
+- JWT auth en `middleware/auth.js`
+- Dark mode funciona via `prefers-color-scheme`
 - Puerto default del server: 5000
+- Client corre en puerto default Vite (usualmente 5173)
+- Para que funcione Cloudinary: necesitas cuenta en cloudinary.com y poner tus credenciales en `.env`
 
----
+## 8. API Endpoints
 
-## 8. Proxima Sesion - Plan de Implementacion Sugerido
-
-1. **Schema DB**: Crear tablas (users, posts, comments, likes, follows)
-2. **Auth**: Registro, login, bcrypt, JWT middleware
-3. **API REST**: CRUD de posts, users
-4. **Frontend**: Reemplazar demo Vite con UI real
-5. **Imagenes**: Integrar Cloudinary/S3
+| Method | Endpoint | Descripcion |
+|--------|----------|-------------|
+| POST | /api/auth/register | Registro de usuario |
+| POST | /api/auth/login | Login, retorna JWT |
+| GET | /api/auth/me | Info del usuario actual |
+| GET | /api/posts/feed | Feed personalizado |
+| POST | /api/posts | Crear post (multipart) |
+| DELETE | /api/posts/:id | Eliminar post |
+| GET | /api/posts/user/:userId | Posts de un usuario |
+| GET | /api/users/:userId | Perfil de usuario |
+| PUT | /api/users | Editar perfil |
+| POST | /api/users/:userId/follow | Seguir usuario |
+| DELETE | /api/users/:userId/follow | Dejar de seguir |
+| POST | /api/likes/:postId | Like post |
+| DELETE | /api/likes/:postId | Unlike post |
+| GET | /api/comments/:postId | Comentarios de post |
+| POST | /api/comments/:postId | Agregar comentario |
+| DELETE | /api/comments/:id | Eliminar comentario |
 
 ---
 
