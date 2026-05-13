@@ -10,6 +10,7 @@ export default function Navbar() {
       {user && (
         <div className="nav-links">
           <Link to="/">Home</Link>
+          <Link to="/explore">Explore</Link>
           <Link to={`/profile/${user.id}`}>Profile</Link>
           <button onClick={logout} className="btn-logout">Logout</button>
         </div>

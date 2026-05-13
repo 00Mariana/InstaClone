@@ -3,7 +3,7 @@ import axios from "axios";
 import Comment from "./Comment";
 
 export default function Post({ post, onUpdate, isOwner }) {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(post.user_liked || false);
   const [likeCount, setLikeCount] = useState(parseInt(post.like_count || 0));
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);

@@ -75,4 +75,17 @@ router.delete("/:userId/follow", auth, async (req, res) => {
   }
 });
 
+router.get("/search/:query", auth, async (req, res) => {
+  try {
+    const { query } = req.params;
+    const users = await pool.query(
+      "SELECT id, username, full_name, profile_picture FROM users WHERE username ILIKE $1 LIMIT 20",
+      [`%${query}%`]
+    );
+    res.json(users.rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

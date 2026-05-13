@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Comment({ comment, onDelete }) {
+export default function Comment({ comment, onDelete, canDelete }) {
   const [showDelete, setShowDelete] = useState(false);
 
   return (
@@ -10,7 +10,7 @@ export default function Comment({ comment, onDelete }) {
         <span className="comment-username">{comment.username}</span>
         <span className="comment-text">{comment.content}</span>
       </div>
-      {showDelete && (
+      {(showDelete && canDelete) && (
         <button className="btn-delete-comment" onClick={() => onDelete(comment.id)}>Delete</button>
       )}
     </div>

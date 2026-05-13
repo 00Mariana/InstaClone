@@ -24,11 +24,12 @@ router.get("/", auth, async (req, res) => {
     const posts = await pool.query(`
       SELECT p.*, u.username, u.profile_picture,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
       FROM posts p
       JOIN users u ON p.user_id = u.id
       ORDER BY p.created_at DESC
-    `);
+    `, [req.user.id]);
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -40,7 +41,8 @@ router.get("/feed", auth, async (req, res) => {
     const posts = await pool.query(`
       SELECT p.*, u.username, u.profile_picture,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
       FROM posts p
       JOIN users u ON p.user_id = u.id
       WHERE p.user_id IN (
@@ -59,12 +61,13 @@ router.get("/user/:userId", auth, async (req, res) => {
     const posts = await pool.query(`
       SELECT p.*, u.username, u.profile_picture,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
       FROM posts p
       JOIN users u ON p.user_id = u.id
-      WHERE p.user_id = $1
+      WHERE p.user_id = $2
       ORDER BY p.created_at DESC
-    `, [req.params.userId]);
+    `, [req.user.id, req.params.userId]);
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -82,6 +85,23 @@ router.delete("/:id", auth, async (req, res) => {
     }
     await pool.query("DELETE FROM posts WHERE id = $1", [req.params.id]);
     res.json({ message: "Post deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/explore", auth, async (req, res) => {
+  try {
+    const posts = await pool.query(`
+      SELECT p.*, u.username, u.profile_picture,
+      (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
+      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      ORDER BY p.created_at DESC
+    `, [req.user.id]);
+    res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Explore from "./pages/Explore";
+import PostPage from "./pages/PostPage";
 import "./index.css";
 
 const PrivateRoute = ({ children }) => {
@@ -23,6 +25,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+            <Route path="/explore" element={<PrivateRoute><Explore /></PrivateRoute>} />
+            <Route path="/post/:postId" element={<PrivateRoute><PostPage /></PrivateRoute>} />
             <Route path="/profile/:userId" element={<PrivateRoute><Profile /></PrivateRoute>} />
             <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           </Routes>
