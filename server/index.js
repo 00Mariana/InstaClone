@@ -9,6 +9,9 @@ const usersRoutes = require("./routes/users");
 const commentsRoutes = require("./routes/comments");
 const likesRoutes = require("./routes/likes");
 const notificationsRoutes = require("./routes/notifications");
+const storiesRoutes = require("./routes/stories");
+const bookmarksRoutes = require("./routes/bookmarks");
+const messagesRoutes = require("./routes/messages");
 
 const app = express();
 
@@ -21,6 +24,9 @@ app.use("/api/users", usersRoutes);
 app.use("/api/comments", commentsRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/stories", storiesRoutes);
+app.use("/api/bookmarks", bookmarksRoutes);
+app.use("/api/messages", messagesRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "InstaClone API is running!" });
