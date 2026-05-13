@@ -7,10 +7,21 @@ const router = express.Router();
 router.post("/:postId", auth, async (req, res) => {
   try {
     const { content } = req.body;
+    const post = await pool.query("SELECT user_id FROM posts WHERE id = $1", [req.params.postId]);
+    const postOwnerId = post.rows[0].user_id;
+    
     const newComment = await pool.query(
       "INSERT INTO comments (user_id, post_id, content) VALUES ($1, $2, $3) RETURNING *",
       [req.user.id, req.params.postId, content]
     );
+    
+    if (postOwnerId !== req.user.id) {
+      await pool.query(
+        "INSERT INTO notifications (user_id, type, from_user_id, post_id) VALUES ($1, 'comment', $2, $3)",
+        [postOwnerId, req.user.id, req.params.postId]
+      );
+    }
+    
     const user = await pool.query("SELECT username, profile_picture FROM users WHERE id = $1", [req.user.id]);
     res.json({ ...newComment.rows[0], user: user.rows[0] });
   } catch (err) {

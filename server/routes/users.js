@@ -57,6 +57,10 @@ router.post("/:userId/follow", auth, async (req, res) => {
       "INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
       [req.user.id, req.params.userId]
     );
+    await pool.query(
+      "INSERT INTO notifications (user_id, type, from_user_id) VALUES ($1, 'follow', $2)",
+      [req.params.userId, req.user.id]
+    );
     res.json({ message: "Followed successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -82,6 +86,23 @@ router.get("/search/:query", auth, async (req, res) => {
       "SELECT id, username, full_name, profile_picture FROM users WHERE username ILIKE $1 LIMIT 20",
       [`%${query}%`]
     );
+    res.json(users.rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/suggestions", auth, async (req, res) => {
+  try {
+    const users = await pool.query(`
+      SELECT u.id, u.username, u.full_name, u.profile_picture,
+      (SELECT COUNT(*) FROM posts WHERE user_id = u.id) as posts_count
+      FROM users u
+      WHERE u.id != $1
+      AND u.id NOT IN (SELECT following_id FROM follows WHERE follower_id = $1)
+      ORDER BY posts_count DESC
+      LIMIT 5
+    `, [req.user.id]);
     res.json(users.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
