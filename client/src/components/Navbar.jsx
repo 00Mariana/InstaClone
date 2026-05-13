@@ -16,6 +16,8 @@ export default function Navbar() {
         <div className="nav-links">
           <Link to="/">Home</Link>
           <Link to="/explore">Explore</Link>
+          <Link to="/messages">💬</Link>
+          <Link to="/bookmarks">🔖</Link>
           <div className="notification-wrapper">
             <button onClick={() => setShowNotifications(!showNotifications)} className="notification-btn">
               🔔

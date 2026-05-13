@@ -8,6 +8,8 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Explore from "./pages/Explore";
 import PostPage from "./pages/PostPage";
+import Bookmarks from "./pages/Bookmarks";
+import Messages from "./pages/Messages";
 import "./index.css";
 
 const PrivateRoute = ({ children }) => {
@@ -29,6 +31,9 @@ function App() {
               <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
               <Route path="/explore" element={<PrivateRoute><Explore /></PrivateRoute>} />
               <Route path="/post/:postId" element={<PrivateRoute><PostPage /></PrivateRoute>} />
+              <Route path="/bookmarks" element={<PrivateRoute><Bookmarks /></PrivateRoute>} />
+              <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
+              <Route path="/messages/:conversationId" element={<PrivateRoute><Messages /></PrivateRoute>} />
               <Route path="/profile/:userId" element={<PrivateRoute><Profile /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
             </Routes>
