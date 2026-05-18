@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../context/AuthContext";
 
 export default function StoryViewer() {
   const { userId } = useParams();
-  const { user } = useAuth();
   const [stories, setStories] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);

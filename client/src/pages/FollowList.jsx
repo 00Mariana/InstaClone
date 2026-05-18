@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
 export default function FollowList() {
   const { userId } = useParams();
   const { user: currentUser } = useAuth();
+  const location = useLocation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const type = window.location.pathname.includes("/followers") ? "followers" : "following";
+  const type = location.pathname.includes("/followers") ? "followers" : "following";
 
   const targetUserId = userId ? parseInt(userId) : currentUser?.id;
 

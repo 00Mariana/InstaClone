@@ -9,8 +9,8 @@ router.get("/active", auth, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT DISTINCT user_id FROM stories
-      WHERE created_at > NOW() - INTERVAL '24 hours'
-    `);
+      WHERE user_id != $1 AND created_at > NOW() - INTERVAL '24 hours'
+    `, [req.user.id]);
     res.json(result.rows.map(r => r.user_id));
   } catch (err) {
     res.status(500).json({ message: err.message });
