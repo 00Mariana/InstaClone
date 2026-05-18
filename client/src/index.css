@@ -783,10 +783,10 @@ a:hover { text-decoration: underline; }
   height: 66px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 4px;
 }
 
 .story-avatar-wrap {
+  position: relative;
   width: 70px;
   height: 70px;
   display: flex;
@@ -805,25 +805,26 @@ a:hover { text-decoration: underline; }
 .story-avatar-wrap:not(.has-ring) {
   border: 2px solid var(--border);
   padding: 0;
+  background: transparent;
+}
+
+.story-item {
+  position: relative;
 }
 
 .story-item.add-story .story-avatar-wrap {
   background: var(--accent);
   padding: 0;
+  border: none;
 }
 
 .story-item.add-story .story-avatar {
   border: 2px solid var(--bg);
-  margin-bottom: 0;
-}
-
-.story-item.add-story .story-avatar-wrap .story-avatar {
-  margin-bottom: 0;
 }
 
 .story-item.add-story .add-story-icon {
   position: absolute;
-  bottom: 20px;
+  bottom: -2px;
   right: -2px;
   width: 22px;
   height: 22px;
@@ -835,6 +836,7 @@ a:hover { text-decoration: underline; }
   justify-content: center;
   font-size: 14px;
   border: 2px solid var(--bg);
+  z-index: 2;
 }
 
 .story-username {
@@ -844,21 +846,6 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.add-story-icon {
-  position: absolute;
-  bottom: 20px;
-  right: 5px;
-  background: var(--accent);
-  color: #fff;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
 }
 
 .story-upload-form {

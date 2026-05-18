@@ -38,9 +38,9 @@ router.get("/feed", auth, async (req, res) => {
       SELECT s.*, u.username, u.profile_picture
       FROM stories s
       JOIN users u ON s.user_id = u.id
-      WHERE s.user_id IN (
+      WHERE (s.user_id IN (
         SELECT following_id FROM follows WHERE follower_id = $1
-      ) OR s.user_id = $1
+      ) OR s.user_id = $1)
       AND s.created_at > NOW() - INTERVAL '24 hours'
       ORDER BY s.created_at DESC
     `, [req.user.id]);

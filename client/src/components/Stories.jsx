@@ -51,13 +51,20 @@ export default function Stories() {
     }
   };
 
-  const myStories = stories.filter(s => s.user_id === user?.id);
+  const otherStories = stories
+    .filter(s => s.user_id !== user?.id)
+    .reduce((acc, story) => {
+      if (!acc.find(s => s.user_id === story.user_id)) {
+        acc.push(story);
+      }
+      return acc;
+    }, []);
 
   return (
     <div className="stories-container">
       <div className="stories-scroll">
         <div className="story-item add-story" onClick={() => setShowUpload(!showUpload)}>
-          <div className="story-avatar-wrap">
+          <div className="story-avatar-wrap add-story-ring">
             <img
               src={user?.profile_picture || "https://via.placeholder.com/64"}
               alt=""
@@ -67,8 +74,8 @@ export default function Stories() {
           </div>
           <span className="story-username">Your Story</span>
         </div>
-        {stories.filter(s => s.user_id !== user?.id).map(story => (
-          <Link to={`/stories/${story.user_id}`} key={story.id} className="story-item">
+        {otherStories.map(story => (
+          <Link to={`/stories/${story.user_id}`} key={story.user_id} className="story-item">
             <div className={`story-avatar-wrap ${activeUsers.includes(story.user_id) ? "has-ring" : ""}`}>
               <img
                 src={story.profile_picture || "https://via.placeholder.com/64"}
