@@ -21,6 +21,8 @@ router.get("/search/:query", auth, async (req, res) => {
 router.get("/suggestions", auth, async (req, res) => {
   console.log("=== /suggestions route hit ===");
   try {
+    const limit = parseInt(req.query.limit) || 5;
+    const offset = parseInt(req.query.offset) || 0;
     const users = await pool.query(`
       SELECT u.id, u.username, u.full_name, u.profile_picture,
       (SELECT COUNT(*) FROM posts WHERE user_id = u.id) as posts_count
@@ -28,8 +30,8 @@ router.get("/suggestions", auth, async (req, res) => {
       WHERE u.id != $1
       AND u.id NOT IN (SELECT following_id FROM follows WHERE follower_id = $1)
       ORDER BY posts_count DESC
-      LIMIT 5
-    `, [req.user.id]);
+      LIMIT $2 OFFSET $3
+    `, [req.user.id, limit, offset]);
     res.json(users.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });

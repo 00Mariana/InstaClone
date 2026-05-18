@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.get("/", auth, async (req, res) => {
   try {
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
     const notifications = await pool.query(`
       SELECT n.*, u.username, u.profile_picture, p.image_url as post_image
       FROM notifications n
@@ -13,8 +15,8 @@ router.get("/", auth, async (req, res) => {
       LEFT JOIN posts p ON n.post_id = p.id
       WHERE n.user_id = $1
       ORDER BY n.created_at DESC
-      LIMIT 20
-    `, [req.user.id]);
+      LIMIT $2 OFFSET $3
+    `, [req.user.id, limit, offset]);
     res.json(notifications.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });

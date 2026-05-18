@@ -5,6 +5,21 @@ const { parser } = require("../config/cloudinary");
 
 const router = express.Router();
 
+const DEFAULT_LIMIT = 20;
+
+const getPostQuery = (whereClause = "") => `
+  SELECT p.*, u.username, u.profile_picture,
+  (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
+  (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+  EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
+  EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
+  FROM posts p
+  JOIN users u ON p.user_id = u.id
+  ${whereClause ? `WHERE ${whereClause}` : ""}
+  ORDER BY p.created_at DESC
+  LIMIT $2 OFFSET $3
+`;
+
 router.post("/", auth, parser.single("image"), async (req, res) => {
   try {
     const { caption } = req.body;
@@ -21,16 +36,9 @@ router.post("/", auth, parser.single("image"), async (req, res) => {
 
 router.get("/", auth, async (req, res) => {
   try {
-    const posts = await pool.query(`
-      SELECT p.*, u.username, u.profile_picture,
-      (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
-      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      ORDER BY p.created_at DESC
-    `, [req.user.id]);
+    const limit = parseInt(req.query.limit) || DEFAULT_LIMIT;
+    const offset = parseInt(req.query.offset) || 0;
+    const posts = await pool.query(getPostQuery(""), [req.user.id, limit, offset]);
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -39,19 +47,10 @@ router.get("/", auth, async (req, res) => {
 
 router.get("/feed", auth, async (req, res) => {
   try {
-    const posts = await pool.query(`
-      SELECT p.*, u.username, u.profile_picture,
-      (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
-      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      WHERE p.user_id IN (
-        SELECT following_id FROM follows WHERE follower_id = $1
-      ) OR p.user_id = $1
-      ORDER BY p.created_at DESC
-    `, [req.user.id]);
+    const limit = parseInt(req.query.limit) || DEFAULT_LIMIT;
+    const offset = parseInt(req.query.offset) || 0;
+    const whereClause = "(p.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1) OR p.user_id = $1)";
+    const posts = await pool.query(getPostQuery(whereClause), [req.user.id, limit, offset]);
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -60,17 +59,10 @@ router.get("/feed", auth, async (req, res) => {
 
 router.get("/user/:userId", auth, async (req, res) => {
   try {
-    const posts = await pool.query(`
-      SELECT p.*, u.username, u.profile_picture,
-      (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
-      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      WHERE p.user_id = $2
-      ORDER BY p.created_at DESC
-    `, [req.user.id, req.params.userId]);
+    const limit = parseInt(req.query.limit) || DEFAULT_LIMIT;
+    const offset = parseInt(req.query.offset) || 0;
+    const whereClause = "p.user_id = $4";
+    const posts = await pool.query(getPostQuery(whereClause), [req.user.id, limit, offset, req.params.userId]);
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -115,16 +107,9 @@ router.put("/:id", auth, async (req, res) => {
 
 router.get("/explore", auth, async (req, res) => {
   try {
-    const posts = await pool.query(`
-      SELECT p.*, u.username, u.profile_picture,
-      (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
-      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
-      FROM posts p
-      JOIN users u ON p.user_id = u.id
-      ORDER BY p.created_at DESC
-    `, [req.user.id]);
+    const limit = parseInt(req.query.limit) || DEFAULT_LIMIT;
+    const offset = parseInt(req.query.offset) || 0;
+    const posts = await pool.query(getPostQuery(""), [req.user.id, limit, offset]);
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });

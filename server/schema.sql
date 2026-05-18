@@ -104,6 +104,12 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_bookmarks_post_id ON bookmarks(post_id);
       CREATE INDEX IF NOT EXISTS idx_stories_user_id ON stories(user_id);
       CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id);
+      CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
+      CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read) WHERE read = FALSE;
+      CREATE INDEX IF NOT EXISTS idx_stories_created_at ON stories(created_at);
+      CREATE INDEX IF NOT EXISTS idx_conversation_participants_user ON conversation_participants(user_id);
     `);
     console.log("Tables created successfully!");
   } catch (err) {
