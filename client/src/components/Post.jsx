@@ -5,6 +5,7 @@ import Comment from "./Comment";
 export default function Post({ post, onUpdate, isOwner }) {
   const [liked, setLiked] = useState(post.user_liked || false);
   const [likeCount, setLikeCount] = useState(parseInt(post.like_count || 0));
+  const [bookmarked, setBookmarked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -13,13 +14,27 @@ export default function Post({ post, onUpdate, isOwner }) {
   const handleLike = async () => {
     try {
       if (liked) {
-        const res = await axios.delete(`http://localhost:5000/api/likes/${post.id}`);
+        const res = await axios.delete(`/api/likes/${post.id}`);
         setLiked(false);
         setLikeCount(res.data.count);
       } else {
-        const res = await axios.post(`http://localhost:5000/api/likes/${post.id}`);
+        const res = await axios.post(`/api/likes/${post.id}`);
         setLiked(true);
         setLikeCount(res.data.count);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleBookmark = async () => {
+    try {
+      if (bookmarked) {
+        await axios.delete(`/api/bookmarks/${post.id}`);
+        setBookmarked(false);
+      } else {
+        await axios.post(`/api/bookmarks/${post.id}`);
+        setBookmarked(true);
       }
     } catch (err) {
       console.error(err);
@@ -30,7 +45,7 @@ export default function Post({ post, onUpdate, isOwner }) {
     e.preventDefault();
     if (!newComment.trim()) return;
     try {
-      const res = await axios.post(`http://localhost:5000/api/comments/${post.id}`, { content: newComment });
+      const res = await axios.post(`/api/comments/${post.id}`, { content: newComment });
       setComments([...comments, res.data]);
       setNewComment("");
     } catch (err) {
@@ -40,7 +55,7 @@ export default function Post({ post, onUpdate, isOwner }) {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/comments/${commentId}`);
+      await axios.delete(`/api/comments/${commentId}`);
       setComments(comments.filter(c => c.id !== commentId));
     } catch (err) {
       console.error(err);
@@ -50,7 +65,7 @@ export default function Post({ post, onUpdate, isOwner }) {
   const handleDeletePost = async () => {
     if (window.confirm("Delete this post?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/posts/${post.id}`);
+        await axios.delete(`/api/posts/${post.id}`);
         if (onUpdate) onUpdate();
       } catch (err) {
         console.error(err);
@@ -60,7 +75,7 @@ export default function Post({ post, onUpdate, isOwner }) {
 
   const handleUpdateCaption = async () => {
     try {
-      await axios.put(`http://localhost:5000/api/posts/${post.id}`, { caption });
+      await axios.put(`/api/posts/${post.id}`, { caption });
       alert("Caption updated!");
     } catch (err) {
       console.error(err);
@@ -70,7 +85,7 @@ export default function Post({ post, onUpdate, isOwner }) {
   const loadComments = async () => {
     if (!showComments) {
       try {
-        const res = await axios.get(`http://localhost:5000/api/comments/${post.id}`);
+        const res = await axios.get(`/api/comments/${post.id}`);
         setComments(res.data);
       } catch (err) {
         console.error(err);
@@ -93,9 +108,12 @@ export default function Post({ post, onUpdate, isOwner }) {
       <img src={post.image_url} alt="" className="post-image" />
       <div className="post-actions">
         <button onClick={handleLike} className={`btn-like ${liked ? "liked" : ""}`}>
-          {liked ? "Unlike" : "Like"} ({likeCount})
+          {liked ? "♥" : "♡"} {likeCount}
         </button>
-        <button onClick={loadComments} className="btn-comment">Comment ({post.comment_count || 0})</button>
+        <button onClick={loadComments} className="btn-comment">💬 {post.comment_count || 0}</button>
+        <button onClick={handleBookmark} className={`btn-bookmark ${bookmarked ? "bookmarked" : ""}`}>
+          {bookmarked ? "🔖" : "🔖"}
+        </button>
       </div>
       {isOwner && (
         <div className="edit-caption">

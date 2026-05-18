@@ -14,7 +14,7 @@ export function NotificationProvider({ children }) {
 
   const fetchCount = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/notifications/count");
+      const res = await axios.get("/api/notifications/count");
       setCount(res.data.count);
     } catch (err) {
       console.error(err);

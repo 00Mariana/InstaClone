@@ -22,7 +22,7 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/users/${targetUserId}`);
+      const res = await axios.get(`/api/users/${targetUserId}`);
       setProfile(res.data);
       setForm({ username: res.data.username, full_name: res.data.full_name || "", bio: res.data.bio || "" });
       setLoading(false);
@@ -34,7 +34,7 @@ export default function Profile() {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/posts/user/${targetUserId}`);
+      const res = await axios.get(`/api/posts/user/${targetUserId}`);
       setPosts(res.data);
     } catch (err) {
       console.error(err);
@@ -48,9 +48,9 @@ export default function Profile() {
   const handleFollow = async () => {
     try {
       if (profile.is_following) {
-        await axios.delete(`http://localhost:5000/api/users/${targetUserId}/follow`);
+        await axios.delete(`/api/users/${targetUserId}/follow`);
       } else {
-        await axios.post(`http://localhost:5000/api/users/${targetUserId}/follow`);
+        await axios.post(`/api/users/${targetUserId}/follow`);
       }
       fetchProfile();
     } catch (err) {
@@ -65,12 +65,12 @@ export default function Profile() {
       if (file) {
         const formData = new FormData();
         formData.append("image", file);
-        const res = await axios.post("http://localhost:5000/api/posts", formData, {
+        const res = await axios.post("/api/posts", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         profile_picture = res.data.image_url;
       }
-      await axios.put("http://localhost:5000/api/users", { ...form, profile_picture });
+      await axios.put("/api/users", { ...form, profile_picture });
       setEditing(false);
       fetchProfile();
     } catch (err) {

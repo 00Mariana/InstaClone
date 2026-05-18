@@ -20,7 +20,7 @@ export default function PostPage() {
 
   const fetchPost = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/posts`);
+      const res = await axios.get(`/api/posts`);
       const found = res.data.find(p => p.id === parseInt(postId));
       if (found) {
         setPost(found);
@@ -34,7 +34,7 @@ export default function PostPage() {
 
   const fetchComments = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/comments/${postId}`);
+      const res = await axios.get(`/api/comments/${postId}`);
       setComments(res.data);
     } catch (err) {
       console.error(err);
@@ -44,11 +44,11 @@ export default function PostPage() {
   const handleLike = async () => {
     try {
       if (liked) {
-        const res = await axios.delete(`http://localhost:5000/api/likes/${postId}`);
+        const res = await axios.delete(`/api/likes/${postId}`);
         setLiked(false);
         setLikeCount(res.data.count);
       } else {
-        const res = await axios.post(`http://localhost:5000/api/likes/${postId}`);
+        const res = await axios.post(`/api/likes/${postId}`);
         setLiked(true);
         setLikeCount(res.data.count);
       }
@@ -61,7 +61,7 @@ export default function PostPage() {
     e.preventDefault();
     if (!newComment.trim()) return;
     try {
-      const res = await axios.post(`http://localhost:5000/api/comments/${postId}`, { content: newComment });
+      const res = await axios.post(`/api/comments/${postId}`, { content: newComment });
       setComments([...comments, res.data]);
       setNewComment("");
     } catch (err) {
@@ -71,7 +71,7 @@ export default function PostPage() {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/comments/${commentId}`);
+      await axios.delete(`/api/comments/${commentId}`);
       setComments(comments.filter(c => c.id !== commentId));
     } catch (err) {
       console.error(err);

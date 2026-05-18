@@ -15,7 +15,7 @@ export default function Stories() {
 
   const fetchStories = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/stories/feed");
+      const res = await axios.get("/api/stories/feed");
       setStories(res.data);
     } catch (err) {
       console.error(err);
@@ -28,7 +28,7 @@ export default function Stories() {
     const formData = new FormData();
     formData.append("image", file);
     try {
-      await axios.post("http://localhost:5000/api/stories", formData, {
+      await axios.post("/api/stories", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setFile(null);

@@ -12,9 +12,9 @@ export default function Notifications({ onClose }) {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/notifications");
+      const res = await axios.get("/api/notifications");
       setNotifications(res.data);
-      await axios.put("http://localhost:5000/api/notifications/read");
+      await axios.put("/api/notifications/read");
     } catch (err) {
       console.error(err);
     }

@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      axios.get("http://localhost:5000/api/auth/me")
+      axios.get("/api/auth/me")
         .then(res => setUser(res.data))
         .catch(() => localStorage.removeItem("token"))
         .finally(() => setLoading(false));
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+    const res = await axios.post("/api/auth/login", { email, password });
     localStorage.setItem("token", res.data.token);
     axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
     setUser(res.data.user);
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (username, email, password, full_name) => {
-    const res = await axios.post("http://localhost:5000/api/auth/register", { username, email, password, full_name });
+    const res = await axios.post("/api/auth/register", { username, email, password, full_name });
     localStorage.setItem("token", res.data.token);
     axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
     setUser(res.data.user);

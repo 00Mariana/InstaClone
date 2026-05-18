@@ -9,7 +9,7 @@ export default function Explore() {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/posts/explore");
+      const res = await axios.get("/api/posts/explore");
       setPosts(res.data);
     } catch (err) {
       console.error(err);
@@ -27,7 +27,7 @@ export default function Explore() {
         return;
       }
       try {
-        const res = await axios.get(`http://localhost:5000/api/users/search/${searchQuery}`);
+        const res = await axios.get(`/api/users/search/${searchQuery}`);
         setSearchResults(res.data);
       } catch (err) {
         console.error(err);

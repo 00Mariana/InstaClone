@@ -5,7 +5,10 @@ const { parser } = require("../config/cloudinary");
 
 const router = express.Router();
 
+console.log("Stories route module loaded");
+
 router.post("/", auth, parser.single("image"), async (req, res) => {
+  console.log("POST /api/stories called");
   try {
     const image_url = req.file.path;
     const newStory = await pool.query(
@@ -19,6 +22,7 @@ router.post("/", auth, parser.single("image"), async (req, res) => {
 });
 
 router.get("/feed", auth, async (req, res) => {
+  console.log("GET /api/stories/feed called, user:", req.user?.id);
   try {
     const stories = await pool.query(`
       SELECT s.*, u.username, u.profile_picture
@@ -37,6 +41,7 @@ router.get("/feed", auth, async (req, res) => {
 });
 
 router.get("/user/:userId", auth, async (req, res) => {
+  console.log("GET /api/stories/user/:userId called");
   try {
     const stories = await pool.query(`
       SELECT s.*, u.username, u.profile_picture
@@ -52,6 +57,7 @@ router.get("/user/:userId", auth, async (req, res) => {
 });
 
 router.delete("/:id", auth, async (req, res) => {
+  console.log("DELETE /api/stories/:id called");
   try {
     const story = await pool.query("SELECT * FROM stories WHERE id = $1", [req.params.id]);
     if (story.rows.length === 0) {

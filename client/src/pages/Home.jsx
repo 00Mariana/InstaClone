@@ -14,7 +14,7 @@ export default function Home() {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/posts/feed");
+      const res = await axios.get("/api/posts/feed");
       setPosts(res.data);
     } catch (err) {
       console.error(err);
@@ -23,7 +23,7 @@ export default function Home() {
 
   const fetchSuggestions = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/users/suggestions");
+      const res = await axios.get("/api/users/suggestions");
       setSuggestions(res.data);
     } catch (err) {
       console.error(err);
@@ -42,7 +42,7 @@ export default function Home() {
     formData.append("image", file);
     formData.append("caption", caption);
     try {
-      await axios.post("http://localhost:5000/api/posts", formData, {
+      await axios.post("/api/posts", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setFile(null);
@@ -55,7 +55,7 @@ export default function Home() {
 
   const handleFollow = async (userId) => {
     try {
-      await axios.post(`http://localhost:5000/api/users/${userId}/follow`);
+      await axios.post(`/api/users/${userId}/follow`);
       fetchSuggestions();
     } catch (err) {
       console.error(err);
