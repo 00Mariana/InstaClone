@@ -62,13 +62,14 @@ router.get("/:postId/users", auth, async (req, res) => {
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
     const users = await pool.query(`
-      SELECT u.id, u.username, u.full_name, u.profile_picture
+      SELECT u.id, u.username, u.full_name, u.profile_picture,
+      EXISTS(SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = u.id) as is_following
       FROM likes l
       JOIN users u ON l.user_id = u.id
-      WHERE l.post_id = $1
+      WHERE l.post_id = $2
       ORDER BY l.created_at DESC
-      LIMIT $2 OFFSET $3
-    `, [req.params.postId, limit, offset]);
+      LIMIT $3 OFFSET $4
+    `, [req.user.id, req.params.postId, limit, offset]);
     res.json(users.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });

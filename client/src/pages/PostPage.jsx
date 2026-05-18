@@ -14,6 +14,17 @@ export default function PostPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
 
+  const renderCaption = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(#\w+)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("#")) {
+        return <Link key={i} to={`/explore?tag=${part.slice(1)}`} className="hashtag">{part}</Link>;
+      }
+      return part;
+    });
+  };
+
   useEffect(() => {
     fetchPost();
     fetchComments();
@@ -111,7 +122,7 @@ export default function PostPage() {
               <img src={post.profile_picture || "https://via.placeholder.com/32"} alt="" className="avatar-small" />
               <div className="comment-content">
                 <span className="comment-username">{post.username}</span>
-                <span className="comment-text">{post.caption}</span>
+                <span className="comment-text">{renderCaption(post.caption)}</span>
               </div>
             </div>
           )}
@@ -120,9 +131,9 @@ export default function PostPage() {
           ))}
         </div>
         <div className="post-actions">
-          <button onClick={handleLike} className={`btn-like ${liked ? "liked" : ""}`}>
+          <Link to={`/post/${postId}/likes`} onClick={(e) => { if (liked) { e.preventDefault(); handleLike(); } }} className={`btn-like ${liked ? "liked" : ""}`}>
             {liked ? "♥" : "♡"} {likeCount}
-          </button>
+          </Link>
           <button onClick={handleBookmark} className={`btn-bookmark ${bookmarked ? "bookmarked" : ""}`}>
             {bookmarked ? "🔖" : "📄"}
           </button>

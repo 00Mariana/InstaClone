@@ -8,6 +8,7 @@ export default function LikesList() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [followedIds, setFollowedIds] = useState(new Set());
 
   useEffect(() => {
     fetchUsers();
@@ -30,6 +31,7 @@ export default function LikesList() {
         await axios.delete(`/api/users/${userId}/follow`);
       } else {
         await axios.post(`/api/users/${userId}/follow`);
+        setFollowedIds(prev => new Set([...prev, userId]));
       }
       fetchUsers();
     } catch (err) {
@@ -59,8 +61,8 @@ export default function LikesList() {
                 </div>
               </Link>
               {user?.id !== u.id && (
-                <button onClick={() => handleFollow(u.id)} className="btn-follow-small">
-                  Follow
+                <button onClick={() => handleFollow(u.id)} className={`btn-follow-small ${u.is_following || followedIds.has(u.id) ? "following" : ""}`}>
+                  {u.is_following || followedIds.has(u.id) ? "Following" : "Follow"}
                 </button>
               )}
             </div>
