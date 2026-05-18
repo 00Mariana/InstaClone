@@ -5,7 +5,17 @@ const { parser } = require("../config/cloudinary");
 
 const router = express.Router();
 
-console.log("Stories route module loaded");
+router.get("/active", auth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT DISTINCT user_id FROM stories
+      WHERE created_at > NOW() - INTERVAL '24 hours'
+    `);
+    res.json(result.rows.map(r => r.user_id));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 router.post("/", auth, parser.single("image"), async (req, res) => {
   console.log("POST /api/stories called");

@@ -10,6 +10,7 @@ import Explore from "./pages/Explore";
 import PostPage from "./pages/PostPage";
 import Bookmarks from "./pages/Bookmarks";
 import Messages from "./pages/Messages";
+import StoryViewer from "./pages/StoryViewer";
 import "./index.css";
 
 const PrivateRoute = ({ children }) => {
@@ -36,6 +37,7 @@ function App() {
               <Route path="/messages/:conversationId" element={<PrivateRoute><Messages /></PrivateRoute>} />
               <Route path="/profile/:userId" element={<PrivateRoute><Profile /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/stories/:userId" element={<PrivateRoute><StoryViewer /></PrivateRoute>} />
             </Routes>
           </div>
         </BrowserRouter>

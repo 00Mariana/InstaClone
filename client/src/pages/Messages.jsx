@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
@@ -10,8 +10,11 @@ export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [showNewMessage, setShowNewMessage] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const [selectedUser, setSelectedUser] = useState("");
   const [newMessageContent, setNewMessageContent] = useState("");
+  const searchRef = useRef(null);
 
   useEffect(() => {
     fetchConversations();
@@ -22,6 +25,33 @@ export default function Messages() {
       fetchMessages(conversationId);
     }
   }, [conversationId]);
+
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (searchQuery.trim().length < 1) {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        const res = await axios.get(`/api/users/search/${searchQuery}`);
+        setSearchResults(res.data.filter(u => u.id !== user?.id));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    const debounce = setTimeout(searchUsers, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery, user?.id]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchResults([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchConversations = async () => {
     try {
@@ -51,6 +81,7 @@ export default function Messages() {
       setShowNewMessage(false);
       setNewMessageContent("");
       setSelectedUser("");
+      setSearchQuery("");
       fetchConversations();
     } catch (err) {
       console.error(err);
@@ -76,37 +107,63 @@ export default function Messages() {
       <div className="conversations-list">
         <div className="conversations-header">
           <h1>Messages</h1>
-          <button onClick={() => setShowNewMessage(true)} className="new-message-btn">+</button>
+          <button onClick={() => setShowNewMessage(!showNewMessage)} className="new-message-btn">+</button>
         </div>
         {showNewMessage && (
-          <form onSubmit={startNewConversation} className="new-message-form">
-            <input 
-              type="number" 
-              placeholder="Enter user ID" 
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
+          <div className="new-message-form" ref={searchRef}>
+            <input
+              type="text"
+              placeholder="Search for a user..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="user-search-input"
             />
-            <input 
-              type="text" 
-              placeholder="Message" 
-              value={newMessageContent}
-              onChange={(e) => setNewMessageContent(e.target.value)}
-            />
-            <button type="submit" className="btn-primary">Send</button>
-          </form>
+            {searchResults.length > 0 && (
+              <div className="user-search-results">
+                {searchResults.map(u => (
+                  <div
+                    key={u.id}
+                    className="user-search-item"
+                    onClick={() => {
+                      setSelectedUser(u.id);
+                      setSearchQuery(u.username);
+                      setSearchResults([]);
+                    }}
+                  >
+                    <img src={u.profile_picture || "https://via.placeholder.com/40"} alt="" className="avatar-small" />
+                    <div className="user-search-info">
+                      <span className="user-search-username">{u.username}</span>
+                      {u.full_name && <span className="user-search-fullname">{u.full_name}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {selectedUser && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Your message..."
+                  value={newMessageContent}
+                  onChange={(e) => setNewMessageContent(e.target.value)}
+                />
+                <button type="submit" onClick={startNewConversation} className="btn-primary">Send</button>
+              </>
+            )}
+          </div>
         )}
         {conversations.length === 0 ? (
           <p className="no-conversations">No conversations yet</p>
         ) : (
           conversations.map(conv => (
-            <Link 
-              to={`/messages/${conv.id}`} 
-              key={conv.id} 
+            <Link
+              to={`/messages/${conv.id}`}
+              key={conv.id}
               className={`conversation-item ${conversationId == conv.id ? "active" : ""}`}
             >
-              <img 
-                src={conv.other_profile_picture || "https://via.placeholder.com/40"} 
-                alt="" 
+              <img
+                src={conv.other_profile_picture || "https://via.placeholder.com/40"}
+                alt=""
                 className="avatar"
               />
               <div className="conversation-info">
@@ -126,13 +183,13 @@ export default function Messages() {
           <>
             <div className="messages-list">
               {messages.map(msg => (
-                <div 
-                  key={msg.id} 
+                <div
+                  key={msg.id}
                   className={`message ${msg.sender_id === user?.id ? "sent" : "received"}`}
                 >
-                  <img 
-                    src={msg.profile_picture || "https://via.placeholder.com/32"} 
-                    alt="" 
+                  <img
+                    src={msg.profile_picture || "https://via.placeholder.com/32"}
+                    alt=""
                     className="avatar-small"
                   />
                   <div className="message-content">{msg.content}</div>
@@ -140,8 +197,8 @@ export default function Messages() {
               ))}
             </div>
             <form onSubmit={sendMessage} className="message-input-form">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Message..."

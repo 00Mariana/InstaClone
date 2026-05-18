@@ -5,18 +5,29 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Stories() {
   const [stories, setStories] = useState([]);
+  const [activeUsers, setActiveUsers] = useState([]);
   const [file, setFile] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
     fetchStories();
+    fetchActiveUsers();
   }, []);
 
   const fetchStories = async () => {
     try {
       const res = await axios.get("/api/stories/feed");
       setStories(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchActiveUsers = async () => {
+    try {
+      const res = await axios.get("/api/stories/active");
+      setActiveUsers(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -34,6 +45,7 @@ export default function Stories() {
       setFile(null);
       setShowUpload(false);
       fetchStories();
+      fetchActiveUsers();
     } catch (err) {
       console.error(err);
     }
@@ -45,21 +57,25 @@ export default function Stories() {
     <div className="stories-container">
       <div className="stories-scroll">
         <div className="story-item add-story" onClick={() => setShowUpload(!showUpload)}>
-          <img 
-            src={user?.profile_picture || "https://via.placeholder.com/64"} 
-            alt="" 
-            className="story-avatar"
-          />
+          <div className="story-avatar-wrap">
+            <img
+              src={user?.profile_picture || "https://via.placeholder.com/64"}
+              alt=""
+              className="story-avatar"
+            />
+            <div className="add-story-icon">+</div>
+          </div>
           <span className="story-username">Your Story</span>
-          <div className="add-story-icon">+</div>
         </div>
         {stories.filter(s => s.user_id !== user?.id).map(story => (
           <Link to={`/stories/${story.user_id}`} key={story.id} className="story-item">
-            <img 
-              src={story.profile_picture || "https://via.placeholder.com/64"} 
-              alt="" 
-              className="story-avatar"
-            />
+            <div className={`story-avatar-wrap ${activeUsers.includes(story.user_id) ? "has-ring" : ""}`}>
+              <img
+                src={story.profile_picture || "https://via.placeholder.com/64"}
+                alt=""
+                className="story-avatar"
+              />
+            </div>
             <span className="story-username">{story.username}</span>
           </Link>
         ))}
