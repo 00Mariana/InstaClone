@@ -13,6 +13,9 @@ export default function PostPage() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
 
   const renderCaption = (text) => {
     if (!text) return null;
@@ -104,6 +107,34 @@ export default function PostPage() {
     }
   };
 
+  const handleShareSearch = async (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const res = await axios.get(`/api/users/search?q=${query}`);
+      setSearchResults(res.data.filter(u => u.id !== user?.id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleShareToUser = async (userId) => {
+    try {
+      await axios.post(`/api/messages/${userId}`, {
+        content: `Shared a post: ${post.caption || ""}`,
+        postId: post.id
+      });
+      setShowShareModal(false);
+      setSearchQuery("");
+      setSearchResults([]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!post) return <div className="loading">Loading...</div>;
 
   return (
@@ -118,14 +149,16 @@ export default function PostPage() {
         </div>
         <div className="comments-list">
           {post.caption && (
-            <div className="comment">
-              <img src={post.profile_picture || "https://via.placeholder.com/32"} alt="" className="avatar-small" />
-              <div className="comment-content">
-                <span className="comment-username">{post.username}</span>
-                <span className="comment-text">{renderCaption(post.caption)}</span>
+            <div className="caption-section">
+              <img src={post.profile_picture || "https://via.placeholder.com/32"} alt="" className="avatar" />
+              <div className="caption-content">
+                <span className="caption-username">{post.username}</span>
+                <span className="caption-text">{renderCaption(post.caption)}</span>
+                {post.created_at !== post.updated_at && <span className="edited-label">Edited</span>}
               </div>
             </div>
           )}
+          {post.location && <div className="post-location-caption">📍 {post.location}</div>}
           {comments.map(c => (
             <Comment key={c.id} comment={c} onDelete={handleDeleteComment} canDelete={c.user_id === user?.id} />
           ))}
@@ -137,7 +170,30 @@ export default function PostPage() {
           <button onClick={handleBookmark} className={`btn-bookmark ${bookmarked ? "bookmarked" : ""}`}>
             {bookmarked ? "🔖" : "📄"}
           </button>
+          <button onClick={() => setShowShareModal(true)} className="btn-share">↗</button>
         </div>
+        {showShareModal && (
+          <div className="share-modal">
+            <div className="share-modal-content">
+              <h3>Share to</h3>
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => handleShareSearch(e.target.value)}
+              />
+              <div className="share-results">
+                {searchResults.map(u => (
+                  <div key={u.id} className="share-result-item" onClick={() => handleShareToUser(u.id)}>
+                    <img src={u.profile_picture || "https://via.placeholder.com/32"} alt="" />
+                    <span>{u.username}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setShowShareModal(false)} className="btn-close-share">Cancel</button>
+            </div>
+          </div>
+        )}
         <form onSubmit={handleAddComment} className="comment-form">
           <input
             type="text"

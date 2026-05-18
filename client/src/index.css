@@ -1454,3 +1454,136 @@ a:hover { text-decoration: underline; }
   color: var(--text);
   padding: 4px 8px;
 }
+
+.caption-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.caption-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.caption-username {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.caption-text a.hashtag {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+.edited-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.post-location {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 8px 16px;
+}
+
+.post-location-caption {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 0 16px 12px;
+}
+
+.btn-comment-like {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 8px 0 0;
+}
+
+.btn-comment-like:hover {
+  color: var(--text);
+}
+
+.btn-share {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.share-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.share-modal-content {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 20px;
+  width: 300px;
+  max-height: 400px;
+}
+
+.share-modal-content h3 {
+  margin: 0 0 16px;
+}
+
+.share-modal-content input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.share-results {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.share-result-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.share-result-item:hover {
+  background: var(--hover);
+}
+
+.share-result-item img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.btn-close-share {
+  margin-top: 12px;
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}

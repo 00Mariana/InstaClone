@@ -19,7 +19,9 @@ const createTables = async () => {
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         image_url TEXT NOT NULL,
         caption TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        location VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS likes (
@@ -36,6 +38,14 @@ const createTables = async () => {
         post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
         content TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS comment_likes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, comment_id)
       );
 
       CREATE TABLE IF NOT EXISTS follows (
@@ -105,6 +115,8 @@ const createTables = async () => {
         conversation_id INTEGER REFERENCES conversations(id) ON DELETE CASCADE,
         sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         content TEXT NOT NULL,
+        type VARCHAR(20) DEFAULT 'text',
+        post_id INTEGER REFERENCES posts(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

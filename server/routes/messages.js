@@ -39,7 +39,11 @@ router.get("/:conversationId", auth, async (req, res) => {
     }
 
     const messages = await pool.query(`
-      SELECT m.*, u.username, u.profile_picture
+      SELECT m.*, u.username, u.profile_picture,
+        CASE WHEN m.type = 'post_share' AND m.post_id IS NOT NULL
+          THEN (SELECT json_build_object('id', p.id, 'image_url', p.image_url) FROM posts p WHERE p.id = m.post_id)
+          ELSE NULL
+        END as shared_post
       FROM messages m
       JOIN users u ON m.sender_id = u.id
       WHERE m.conversation_id = $1
@@ -53,7 +57,7 @@ router.get("/:conversationId", auth, async (req, res) => {
 
 router.post("/:userId", auth, async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, postId } = req.body;
     let conversation = await pool.query(`
       SELECT c.id FROM conversations c
       JOIN conversation_participants cp1 ON c.id = cp1.conversation_id AND cp1.user_id = $1
@@ -69,9 +73,10 @@ router.post("/:userId", auth, async (req, res) => {
       conversationId = conversation.rows[0].id;
     }
 
+    const messageType = postId ? "post_share" : "text";
     const newMessage = await pool.query(
-      "INSERT INTO messages (conversation_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *",
-      [conversationId, req.user.id, content]
+      "INSERT INTO messages (conversation_id, sender_id, content, type, post_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [conversationId, req.user.id, content || "", messageType, postId || null]
     );
     res.json(newMessage.rows[0]);
   } catch (err) {

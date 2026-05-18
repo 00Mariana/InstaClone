@@ -134,6 +134,7 @@ export default function Post({ post, onUpdate, isOwner }) {
         </div>
       )}
       {post.caption && <p className="post-caption"><strong>{post.username}</strong> {renderCaption(post.caption)}</p>}
+      {post.location && <p className="post-location">📍 {post.location}</p>}
       {showComments && (
         <div className="comments-section">
           {comments.map(c => (

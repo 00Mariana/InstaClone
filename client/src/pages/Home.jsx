@@ -9,6 +9,7 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [file, setFile] = useState(null);
   const [caption, setCaption] = useState("");
+  const [location, setLocation] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [followedIds, setFollowedIds] = useState(new Set());
   const { user } = useAuth();
@@ -42,12 +43,14 @@ export default function Home() {
     const formData = new FormData();
     formData.append("image", file);
     formData.append("caption", caption);
+    formData.append("location", location);
     try {
       await axios.post("/api/posts", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setFile(null);
       setCaption("");
+      setLocation("");
       fetchPosts();
     } catch (err) {
       console.error(err);
@@ -73,6 +76,7 @@ export default function Home() {
           <form onSubmit={handleUpload}>
             <input type="file" onChange={(e) => setFile(e.target.files[0])} accept="image/*" required />
             <input type="text" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Caption..." />
+            <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (optional)..." />
             <button type="submit" className="btn-primary">Upload</button>
           </form>
         </div>

@@ -40,12 +40,14 @@ router.post("/:postId", auth, async (req, res) => {
 router.get("/:postId", auth, async (req, res) => {
   try {
     const comments = await pool.query(`
-      SELECT c.*, u.username, u.profile_picture
+      SELECT c.*, u.username, u.profile_picture,
+        (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.id) as like_count,
+        EXISTS(SELECT 1 FROM comment_likes WHERE comment_id = c.id AND user_id = $1) as liked
       FROM comments c
       JOIN users u ON c.user_id = u.id
-      WHERE c.post_id = $1
+      WHERE c.post_id = $2
       ORDER BY c.created_at ASC
-    `, [req.params.postId]);
+    `, [req.user.id, req.params.postId]);
     res.json(comments.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -63,6 +65,40 @@ router.delete("/:id", auth, async (req, res) => {
     }
     await pool.query("DELETE FROM comments WHERE id = $1", [req.params.id]);
     res.json({ message: "Comment deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post("/:id/like", auth, async (req, res) => {
+  try {
+    const { liked } = req.body;
+    if (liked) {
+      await pool.query(
+        "DELETE FROM comment_likes WHERE user_id = $1 AND comment_id = $2",
+        [req.user.id, req.params.id]
+      );
+    } else {
+      await pool.query(
+        "INSERT INTO comment_likes (user_id, comment_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        [req.user.id, req.params.id]
+      );
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/:id/likes", auth, async (req, res) => {
+  try {
+    const likes = await pool.query(`
+      SELECT u.id, u.username, u.profile_picture
+      FROM comment_likes cl
+      JOIN users u ON cl.user_id = u.id
+      WHERE cl.comment_id = $1
+    `, [req.params.id]);
+    res.json(likes.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

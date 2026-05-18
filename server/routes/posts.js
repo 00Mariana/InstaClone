@@ -2,7 +2,8 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { parser } = require("../config/cloudinary");
-const { insertHashtags, parseHashtags } = require("./hashtags");
+const { insertHashtags } = require("./hashtags");
+const { escapeHtml } = require("../utils/sanitize");
 
 const router = express.Router();
 
@@ -23,14 +24,16 @@ const getPostQuery = (whereClause = "") => `
 
 router.post("/", auth, parser.single("image"), async (req, res) => {
   try {
-    const { caption } = req.body;
+    const { caption, location } = req.body;
     const image_url = req.file.path;
+    const sanitizedCaption = caption ? escapeHtml(caption.trim()) : "";
+    const sanitizedLocation = location ? escapeHtml(location.trim()) : "";
     const newPost = await pool.query(
-      "INSERT INTO posts (user_id, image_url, caption) VALUES ($1, $2, $3) RETURNING *",
-      [req.user.id, image_url, caption || ""]
+      "INSERT INTO posts (user_id, image_url, caption, location) VALUES ($1, $2, $3, $4) RETURNING *",
+      [req.user.id, image_url, sanitizedCaption, sanitizedLocation || null]
     );
-    if (caption) {
-      await insertHashtags(newPost.rows[0].id, caption);
+    if (sanitizedCaption) {
+      await insertHashtags(newPost.rows[0].id, sanitizedCaption);
     }
     res.json(newPost.rows[0]);
   } catch (err) {
@@ -112,8 +115,8 @@ router.put("/:id", auth, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
     const updated = await pool.query(
-      "UPDATE posts SET caption = $1 WHERE id = $2 RETURNING *",
-      [caption || "", req.params.id]
+      "UPDATE posts SET caption = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
+      [caption ? escapeHtml(caption.trim()) : "", req.params.id]
     );
     res.json(updated.rows[0]);
   } catch (err) {
