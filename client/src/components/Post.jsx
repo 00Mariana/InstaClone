@@ -5,7 +5,7 @@ import Comment from "./Comment";
 export default function Post({ post, onUpdate, isOwner }) {
   const [liked, setLiked] = useState(post.user_liked || false);
   const [likeCount, setLikeCount] = useState(parseInt(post.like_count || 0));
-  const [bookmarked, setBookmarked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(post.bookmarked || false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");

@@ -9,10 +9,28 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password, full_name } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "Username, email, and password are required" });
+    }
+
+    if (username.length < 3 || username.length > 30) {
+      return res.status(400).json({ message: "Username must be between 3 and 30 characters" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await pool.query(
       "INSERT INTO users (username, email, password, full_name) VALUES ($1, $2, $3, $4) RETURNING id, username, email, full_name, profile_picture, bio, created_at",
-      [username, email, hashedPassword, full_name || ""]
+      [username.trim(), email.trim().toLowerCase(), hashedPassword, full_name || ""]
     );
     const token = jwt.sign({ id: newUser.rows[0].id }, process.env.JWT_SECRET, {
       expiresIn: "30d",
@@ -29,7 +47,12 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const user = await pool.query("SELECT * FROM users WHERE email = $1", [email.toLowerCase()]);
     if (user.rows.length === 0) {
       return res.status(400).json({ message: "Invalid credentials" });
     }

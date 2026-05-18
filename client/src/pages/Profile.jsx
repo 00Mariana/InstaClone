@@ -14,7 +14,7 @@ export default function Profile() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const targetUserId = userId || currentUser?.id;
+  const targetUserId = userId ? parseInt(userId) : currentUser?.id;
 
   useEffect(() => {
     fetchProfile();

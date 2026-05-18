@@ -25,7 +25,8 @@ router.get("/", auth, async (req, res) => {
       SELECT p.*, u.username, u.profile_picture,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
+      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
       FROM posts p
       JOIN users u ON p.user_id = u.id
       ORDER BY p.created_at DESC
@@ -42,7 +43,8 @@ router.get("/feed", auth, async (req, res) => {
       SELECT p.*, u.username, u.profile_picture,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
+      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
       FROM posts p
       JOIN users u ON p.user_id = u.id
       WHERE p.user_id IN (
@@ -62,7 +64,8 @@ router.get("/user/:userId", auth, async (req, res) => {
       SELECT p.*, u.username, u.profile_picture,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
+      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
       FROM posts p
       JOIN users u ON p.user_id = u.id
       WHERE p.user_id = $2
@@ -90,13 +93,34 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
+router.put("/:id", auth, async (req, res) => {
+  try {
+    const { caption } = req.body;
+    const post = await pool.query("SELECT * FROM posts WHERE id = $1", [req.params.id]);
+    if (post.rows.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    if (post.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    const updated = await pool.query(
+      "UPDATE posts SET caption = $1 WHERE id = $2 RETURNING *",
+      [caption || "", req.params.id]
+    );
+    res.json(updated.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.get("/explore", auth, async (req, res) => {
   try {
     const posts = await pool.query(`
       SELECT p.*, u.username, u.profile_picture,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as user_liked,
+      EXISTS(SELECT 1 FROM bookmarks WHERE post_id = p.id AND user_id = $1) as bookmarked
       FROM posts p
       JOIN users u ON p.user_id = u.id
       ORDER BY p.created_at DESC
