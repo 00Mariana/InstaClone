@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
+const { escapeHtml } = require("../utils/sanitize");
 
 const router = express.Router();
 
@@ -84,6 +85,11 @@ router.post("/:conversationId/message", auth, async (req, res) => {
     const userId = req.user.id;
     const { content } = req.body;
 
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: "Message content is required" });
+    }
+    const sanitized = escapeHtml(content.trim());
+
     const participant = await pool.query(
       "SELECT * FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2",
       [conversationId, userId]
@@ -95,9 +101,51 @@ router.post("/:conversationId/message", auth, async (req, res) => {
 
     const newMessage = await pool.query(
       "INSERT INTO messages (conversation_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *",
-      [conversationId, userId, content]
+      [conversationId, userId, sanitized]
     );
     res.json(newMessage.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.put("/message/:messageId", auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: "Message content is required" });
+    }
+    const sanitized = escapeHtml(content.trim());
+
+    const message = await pool.query("SELECT * FROM messages WHERE id = $1", [req.params.messageId]);
+    if (message.rows.length === 0) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+    if (message.rows[0].sender_id !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const updated = await pool.query(
+      "UPDATE messages SET content = $1 WHERE id = $2 RETURNING *",
+      [sanitized, req.params.messageId]
+    );
+    res.json(updated.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.delete("/message/:messageId", auth, async (req, res) => {
+  try {
+    const message = await pool.query("SELECT * FROM messages WHERE id = $1", [req.params.messageId]);
+    if (message.rows.length === 0) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+    if (message.rows[0].sender_id !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    await pool.query("DELETE FROM messages WHERE id = $1", [req.params.messageId]);
+    res.json({ message: "Message deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -57,4 +57,22 @@ router.get("/:postId", auth, async (req, res) => {
   }
 });
 
+router.get("/:postId/users", auth, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
+    const users = await pool.query(`
+      SELECT u.id, u.username, u.full_name, u.profile_picture
+      FROM likes l
+      JOIN users u ON l.user_id = u.id
+      WHERE l.post_id = $1
+      ORDER BY l.created_at DESC
+      LIMIT $2 OFFSET $3
+    `, [req.params.postId, limit, offset]);
+    res.json(users.rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

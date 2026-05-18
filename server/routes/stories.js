@@ -10,8 +10,23 @@ router.get("/active", auth, async (req, res) => {
     const result = await pool.query(`
       SELECT DISTINCT user_id FROM stories
       WHERE user_id != $1 AND created_at > NOW() - INTERVAL '24 hours'
+      AND id NOT IN (
+        SELECT DISTINCT story_id FROM story_views WHERE user_id = $1
+      )
     `, [req.user.id]);
     res.json(result.rows.map(r => r.user_id));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post("/:id/view", auth, async (req, res) => {
+  try {
+    await pool.query(
+      "INSERT INTO story_views (story_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [req.params.id, req.user.id]
+    );
+    res.json({ message: "Story viewed" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

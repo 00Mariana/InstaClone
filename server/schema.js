@@ -80,6 +80,14 @@ const createTables = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS story_views (
+        id SERIAL PRIMARY KEY,
+        story_id INTEGER REFERENCES stories(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(story_id, user_id)
+      );
+
       CREATE TABLE IF NOT EXISTS conversations (
         id SERIAL PRIMARY KEY,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -110,6 +118,24 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read) WHERE read = FALSE;
       CREATE INDEX IF NOT EXISTS idx_stories_created_at ON stories(created_at);
       CREATE INDEX IF NOT EXISTS idx_conversation_participants_user ON conversation_participants(user_id);
+      CREATE INDEX IF NOT EXISTS idx_story_views_story_id ON story_views(story_id);
+      CREATE INDEX IF NOT EXISTS idx_story_views_user_id ON story_views(user_id);
+      CREATE TABLE IF NOT EXISTS hashtags (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS post_tags (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+        hashtag_id INTEGER REFERENCES hashtags(id) ON DELETE CASCADE,
+        UNIQUE(post_id, hashtag_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_post_tags_post_id ON post_tags(post_id);
+      CREATE INDEX IF NOT EXISTS idx_post_tags_hashtag_id ON post_tags(hashtag_id);
+      CREATE INDEX IF NOT EXISTS idx_hashtags_name ON hashtags(name);
     `);
     console.log("Tables created successfully!");
   } catch (err) {

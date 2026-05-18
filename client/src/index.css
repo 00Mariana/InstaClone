@@ -1342,3 +1342,94 @@ a:hover { text-decoration: underline; }
   color: var(--text);
   border: 1px solid var(--border);
 }
+
+.likes-list-page {
+  max-width: 935px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.likes-list-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+
+.likes-list-header h1 {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.likes-list-header .back-btn {
+  color: var(--text);
+  font-size: 24px;
+}
+
+.likes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.likes-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.likes-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.likes-user:hover { text-decoration: none; }
+
+.likes-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.likes-username {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.likes-fullname {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.post-caption {
+  padding: 0 16px 12px;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+.post-caption strong {
+  margin-right: 4px;
+}
+
+.post-caption a.hashtag {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+.btn-like {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.btn-like:hover { text-decoration: underline; }

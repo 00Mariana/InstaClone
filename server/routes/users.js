@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { parser } = require("../config/cloudinary");
+const { escapeHtml } = require("../utils/sanitize");
 
 const router = express.Router();
 
@@ -102,9 +103,15 @@ router.get("/:userId", auth, async (req, res) => {
 router.put("/", auth, async (req, res) => {
   try {
     const { username, full_name, bio, profile_picture } = req.body;
+    const sanitized = {
+      username: username ? escapeHtml(username.trim()) : null,
+      full_name: full_name ? escapeHtml(full_name.trim()) : null,
+      bio: bio ? escapeHtml(bio.trim()) : null,
+      profile_picture
+    };
     const updated = await pool.query(
       "UPDATE users SET username = COALESCE(NULLIF($1, ''), username), full_name = COALESCE(NULLIF($2, ''), full_name), bio = COALESCE(NULLIF($3, ''), bio), profile_picture = COALESCE(NULLIF($4, ''), profile_picture) WHERE id = $5 RETURNING id, username, email, full_name, profile_picture, bio, created_at",
-      [username, full_name, bio, profile_picture, req.user.id]
+      [sanitized.username, sanitized.full_name, sanitized.bio, sanitized.profile_picture, req.user.id]
     );
     res.json(updated.rows[0]);
   } catch (err) {

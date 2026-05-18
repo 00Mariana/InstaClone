@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import Comment from "./Comment";
 
@@ -10,6 +11,17 @@ export default function Post({ post, onUpdate, isOwner }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [caption, setCaption] = useState(post.caption || "");
+
+  const renderCaption = (text) => {
+    if (!text) return null;
+    const parts = text.split(/(#\w+)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("#")) {
+        return <Link key={i} to={`/explore?tag=${part.slice(1)}`} className="hashtag">{part}</Link>;
+      }
+      return part;
+    });
+  };
 
   const handleLike = async () => {
     try {
@@ -107,12 +119,12 @@ export default function Post({ post, onUpdate, isOwner }) {
       </div>
       <img src={post.image_url} alt="" className="post-image" />
       <div className="post-actions">
-        <button onClick={handleLike} className={`btn-like ${liked ? "liked" : ""}`}>
+        <Link to={`/post/${post.id}/likes`} onClick={(e) => { if (liked) { e.preventDefault(); handleLike(); } }} className={`btn-like ${liked ? "liked" : ""}`}>
           {liked ? "♥" : "♡"} {likeCount}
-        </button>
+        </Link>
         <button onClick={loadComments} className="btn-comment">💬 {post.comment_count || 0}</button>
         <button onClick={handleBookmark} className={`btn-bookmark ${bookmarked ? "bookmarked" : ""}`}>
-          {bookmarked ? "🔖" : "🔖"}
+          {bookmarked ? "🔖" : "📄"}
         </button>
       </div>
       {isOwner && (
@@ -121,7 +133,7 @@ export default function Post({ post, onUpdate, isOwner }) {
           <button onClick={handleUpdateCaption}>Update</button>
         </div>
       )}
-      {post.caption && <p className="post-caption"><strong>{post.username}</strong> {post.caption}</p>}
+      {post.caption && <p className="post-caption"><strong>{post.username}</strong> {renderCaption(post.caption)}</p>}
       {showComments && (
         <div className="comments-section">
           {comments.map(c => (

@@ -13,6 +13,8 @@ const notificationsRoutes = require("./routes/notifications");
 const storiesRoutes = require("./routes/stories");
 const bookmarksRoutes = require("./routes/bookmarks");
 const messagesRoutes = require("./routes/messages");
+const hashtagsRoutes = require("./routes/hashtags");
+const { startCleanup } = require("./utils/cleanup");
 
 const app = express();
 app.use(cors());
@@ -42,6 +44,7 @@ app.use("/api/notifications", notificationsRoutes);
 app.use("/api/stories", storiesRoutes);
 app.use("/api/bookmarks", bookmarksRoutes);
 app.use("/api/messages", messagesRoutes);
+app.use("/api/hashtags", hashtagsRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "InstaClone API is running!" });
@@ -50,6 +53,7 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
+  startCleanup();
 });
 
 module.exports = app;

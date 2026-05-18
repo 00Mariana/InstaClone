@@ -1,18 +1,26 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
+const { escapeHtml } = require("../utils/sanitize");
 
 const router = express.Router();
 
 router.post("/:postId", auth, async (req, res) => {
   try {
     const { content } = req.body;
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: "Comment content is required" });
+    }
+    const sanitized = escapeHtml(content.trim());
     const post = await pool.query("SELECT user_id FROM posts WHERE id = $1", [req.params.postId]);
+    if (post.rows.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
     const postOwnerId = post.rows[0].user_id;
     
     const newComment = await pool.query(
       "INSERT INTO comments (user_id, post_id, content) VALUES ($1, $2, $3) RETURNING *",
-      [req.user.id, req.params.postId, content]
+      [req.user.id, req.params.postId, sanitized]
     );
     
     if (postOwnerId !== req.user.id) {

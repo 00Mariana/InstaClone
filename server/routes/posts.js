@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { parser } = require("../config/cloudinary");
+const { insertHashtags, parseHashtags } = require("./hashtags");
 
 const router = express.Router();
 
@@ -28,6 +29,9 @@ router.post("/", auth, parser.single("image"), async (req, res) => {
       "INSERT INTO posts (user_id, image_url, caption) VALUES ($1, $2, $3) RETURNING *",
       [req.user.id, image_url, caption || ""]
     );
+    if (caption) {
+      await insertHashtags(newPost.rows[0].id, caption);
+    }
     res.json(newPost.rows[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });

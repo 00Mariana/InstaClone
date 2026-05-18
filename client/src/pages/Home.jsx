@@ -10,6 +10,7 @@ export default function Home() {
   const [file, setFile] = useState(null);
   const [caption, setCaption] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [followedIds, setFollowedIds] = useState(new Set());
   const { user } = useAuth();
 
   const fetchPosts = async () => {
@@ -56,6 +57,7 @@ export default function Home() {
   const handleFollow = async (userId) => {
     try {
       await axios.post(`/api/users/${userId}/follow`);
+      setFollowedIds(prev => new Set([...prev, userId]));
       fetchSuggestions();
     } catch (err) {
       console.error(err);
@@ -104,9 +106,9 @@ export default function Home() {
                   {suggestion.full_name && <span className="suggestion-fullname">{suggestion.full_name}</span>}
                 </div>
               </Link>
-              <button onClick={() => handleFollow(suggestion.id)} className="btn-follow-small">
-                Follow
-              </button>
+<button onClick={() => handleFollow(suggestion.id)} className={`btn-follow-small ${followedIds.has(suggestion.id) ? "following" : ""}`}>
+                  {followedIds.has(suggestion.id) ? "Following" : "Follow"}
+                </button>
             </div>
           ))
         )}

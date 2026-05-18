@@ -35,6 +35,12 @@ export default function StoryViewer() {
     return () => clearTimeout(timer);
   }, [currentIndex, stories.length]);
 
+  useEffect(() => {
+    if (stories.length > 0 && stories[currentIndex]) {
+      axios.post(`/api/stories/${stories[currentIndex].id}/view`).catch(console.error);
+    }
+  }, [currentIndex, stories]);
+
   if (loading) return <div className="loading">Loading...</div>;
   if (stories.length === 0) return <div className="error">No stories found</div>;
 
