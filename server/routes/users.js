@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
+const { parser } = require("../config/cloudinary");
 
 const router = express.Router();
 
@@ -106,6 +107,22 @@ router.delete("/:userId/follow", auth, async (req, res) => {
       [req.user.id, req.params.userId]
     );
     res.json({ message: "Unfollowed successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post("/avatar", auth, parser.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image provided" });
+    }
+    const image_url = req.file.path;
+    const updated = await pool.query(
+      "UPDATE users SET profile_picture = $1 WHERE id = $2 RETURNING id, username, email, full_name, profile_picture, bio, created_at",
+      [image_url, req.user.id]
+    );
+    res.json(updated.rows[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

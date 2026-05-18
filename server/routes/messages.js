@@ -25,13 +25,25 @@ router.get("/", auth, async (req, res) => {
 
 router.get("/:conversationId", auth, async (req, res) => {
   try {
+    const conversationId = req.params.conversationId;
+    const userId = req.user.id;
+
+    const participant = await pool.query(
+      "SELECT * FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2",
+      [conversationId, userId]
+    );
+
+    if (participant.rows.length === 0) {
+      return res.status(403).json({ message: "Not authorized to view this conversation" });
+    }
+
     const messages = await pool.query(`
       SELECT m.*, u.username, u.profile_picture
       FROM messages m
       JOIN users u ON m.sender_id = u.id
       WHERE m.conversation_id = $1
       ORDER BY m.created_at ASC
-    `, [req.params.conversationId]);
+    `, [conversationId]);
     res.json(messages.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -68,10 +80,22 @@ router.post("/:userId", auth, async (req, res) => {
 
 router.post("/:conversationId/message", auth, async (req, res) => {
   try {
+    const conversationId = req.params.conversationId;
+    const userId = req.user.id;
     const { content } = req.body;
+
+    const participant = await pool.query(
+      "SELECT * FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2",
+      [conversationId, userId]
+    );
+
+    if (participant.rows.length === 0) {
+      return res.status(403).json({ message: "Not authorized to message in this conversation" });
+    }
+
     const newMessage = await pool.query(
       "INSERT INTO messages (conversation_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *",
-      [req.params.conversationId, req.user.id, content]
+      [conversationId, userId, content]
     );
     res.json(newMessage.rows[0]);
   } catch (err) {

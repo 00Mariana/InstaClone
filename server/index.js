@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 const pool = require("./db");
 
@@ -16,6 +17,21 @@ const messagesRoutes = require("./routes/messages");
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests, please try again later" }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: "Too many login attempts, please try again later" }
+});
+
+app.use(globalLimiter);
+app.use("/api/auth", authLimiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postsRoutes);
