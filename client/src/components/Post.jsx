@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import Comment from "./Comment";
 
 export default function Post({ post, onUpdate, isOwner }) {
+  const { user } = useAuth();
   const [liked, setLiked] = useState(post.user_liked || false);
   const [likeCount, setLikeCount] = useState(parseInt(post.like_count || 0));
   const [bookmarked, setBookmarked] = useState(post.bookmarked || false);
@@ -11,6 +13,7 @@ export default function Post({ post, onUpdate, isOwner }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [caption, setCaption] = useState(post.caption || "");
+  const [showEditCaption, setShowEditCaption] = useState(false);
 
   const renderCaption = (text) => {
     if (!text) return null;
@@ -88,7 +91,8 @@ export default function Post({ post, onUpdate, isOwner }) {
   const handleUpdateCaption = async () => {
     try {
       await axios.put(`/api/posts/${post.id}`, { caption });
-      alert("Caption updated!");
+      setShowEditCaption(false);
+      if (onUpdate) onUpdate();
     } catch (err) {
       console.error(err);
     }
@@ -119,9 +123,10 @@ export default function Post({ post, onUpdate, isOwner }) {
       </div>
       <img src={post.image_url} alt="" className="post-image" />
       <div className="post-actions">
-        <Link to={`/post/${post.id}/likes`} onClick={(e) => { if (liked) { e.preventDefault(); handleLike(); } }} className={`btn-like ${liked ? "liked" : ""}`}>
+        <button onClick={handleLike} className={`btn-like ${liked ? "liked" : ""}`}>
           {liked ? "♥" : "♡"} {likeCount}
-        </Link>
+        </button>
+        <Link to={`/post/${post.id}/likes`} className="btn-like-count">{likeCount} likes</Link>
         <button onClick={loadComments} className="btn-comment">💬 {post.comment_count || 0}</button>
         <button onClick={handleBookmark} className={`btn-bookmark ${bookmarked ? "bookmarked" : ""}`}>
           {bookmarked ? "🔖" : "📄"}
@@ -129,17 +134,24 @@ export default function Post({ post, onUpdate, isOwner }) {
       </div>
       {isOwner && (
         <div className="edit-caption">
-          <input type="text" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Edit caption..." />
-          <button onClick={handleUpdateCaption}>Update</button>
+          {!showEditCaption ? (
+            <button onClick={() => setShowEditCaption(true)} className="btn-edit-caption">Edit caption</button>
+          ) : (
+            <>
+              <input type="text" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Edit caption..." />
+              <button onClick={handleUpdateCaption}>Update</button>
+              <button onClick={() => { setShowEditCaption(false); setCaption(post.caption || ""); }}>Cancel</button>
+            </>
+          )}
         </div>
       )}
       {post.caption && <p className="post-caption"><strong>{post.username}</strong> {renderCaption(post.caption)}</p>}
       {post.location && <p className="post-location">📍 {post.location}</p>}
       {showComments && (
         <div className="comments-section">
-          {comments.map(c => (
-            <Comment key={c.id} comment={c} onDelete={handleDeleteComment} />
-          ))}
+{comments.map(c => (
+              <Comment key={c.id} comment={c} onDelete={handleDeleteComment} canDelete={c.user_id === user?.id} />
+            ))}
           <form onSubmit={handleAddComment} className="comment-form">
             <input
               type="text"

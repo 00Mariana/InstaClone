@@ -78,6 +78,14 @@ const insertHashtags = async (postId, caption) => {
   }
 };
 
+const updateHashtags = async (postId, caption) => {
+  await pool.query("DELETE FROM post_tags WHERE post_id = $1", [postId]);
+  if (caption) {
+    await insertHashtags(postId, caption);
+  }
+};
+
 module.exports = router;
 module.exports.parseHashtags = parseHashtags;
 module.exports.insertHashtags = insertHashtags;
+module.exports.updateHashtags = updateHashtags;

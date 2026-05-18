@@ -114,7 +114,7 @@ export default function PostPage() {
       return;
     }
     try {
-      const res = await axios.get(`/api/users/search?q=${query}`);
+      const res = await axios.get(`/api/users/search/${query}`);
       setSearchResults(res.data.filter(u => u.id !== user?.id));
     } catch (err) {
       console.error(err);

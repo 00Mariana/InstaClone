@@ -1,7 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
-const { parser } = require("../config/cloudinary");
+const { parser, cloudinary } = require("../config/cloudinary");
 
 const router = express.Router();
 
@@ -22,10 +22,20 @@ router.get("/active", auth, async (req, res) => {
 
 router.post("/:id/view", auth, async (req, res) => {
   try {
+    const story = await pool.query("SELECT user_id FROM stories WHERE id = $1", [req.params.id]);
+    if (story.rows.length === 0) {
+      return res.status(404).json({ message: "Story not found" });
+    }
     await pool.query(
       "INSERT INTO story_views (story_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
       [req.params.id, req.user.id]
     );
+    if (story.rows[0].user_id !== req.user.id) {
+      await pool.query(
+        "INSERT INTO notifications (user_id, type, from_user_id) VALUES ($1, 'story_view', $2)",
+        [story.rows[0].user_id, req.user.id]
+      );
+    }
     res.json({ message: "Story viewed" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -33,7 +43,6 @@ router.post("/:id/view", auth, async (req, res) => {
 });
 
 router.post("/", auth, parser.single("image"), async (req, res) => {
-  console.log("POST /api/stories called");
   try {
     const image_url = req.file.path;
     const newStory = await pool.query(
@@ -47,7 +56,6 @@ router.post("/", auth, parser.single("image"), async (req, res) => {
 });
 
 router.get("/feed", auth, async (req, res) => {
-  console.log("GET /api/stories/feed called, user:", req.user?.id);
   try {
     const stories = await pool.query(`
       SELECT s.*, u.username, u.profile_picture
@@ -66,7 +74,6 @@ router.get("/feed", auth, async (req, res) => {
 });
 
 router.get("/user/:userId", auth, async (req, res) => {
-  console.log("GET /api/stories/user/:userId called");
   try {
     const stories = await pool.query(`
       SELECT s.*, u.username, u.profile_picture
@@ -82,7 +89,6 @@ router.get("/user/:userId", auth, async (req, res) => {
 });
 
 router.delete("/:id", auth, async (req, res) => {
-  console.log("DELETE /api/stories/:id called");
   try {
     const story = await pool.query("SELECT * FROM stories WHERE id = $1", [req.params.id]);
     if (story.rows.length === 0) {
@@ -91,6 +97,9 @@ router.delete("/:id", auth, async (req, res) => {
     if (story.rows[0].user_id !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
+    const imageUrl = story.rows[0].image_url;
+    const publicId = imageUrl.split("/").pop().split(".")[0];
+    await cloudinary.uploader.destroy(`instaclone/${publicId}`);
     await pool.query("DELETE FROM stories WHERE id = $1", [req.params.id]);
     res.json({ message: "Story deleted" });
   } catch (err) {

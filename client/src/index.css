@@ -1434,6 +1434,16 @@ a:hover { text-decoration: underline; }
 
 .btn-like:hover { text-decoration: underline; }
 
+.btn-like-count {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 0;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
 .explore-tag-header {
   display: flex;
   align-items: center;

@@ -52,7 +52,6 @@ router.get("/:userId/following", auth, async (req, res) => {
 });
 
 router.get("/suggestions", auth, async (req, res) => {
-  console.log("=== /suggestions route hit ===");
   try {
     const limit = parseInt(req.query.limit) || 5;
     const offset = parseInt(req.query.offset) || 0;
@@ -72,7 +71,6 @@ router.get("/suggestions", auth, async (req, res) => {
 });
 
 router.get("/:userId", auth, async (req, res) => {
-  console.log("=== /:userId route hit, userId:", req.params.userId, "user:", req.user?.id);
   try {
     const user = await pool.query(
       "SELECT id, username, email, full_name, profile_picture, bio, created_at FROM users WHERE id = $1",

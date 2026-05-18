@@ -1,8 +1,8 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
-const { parser } = require("../config/cloudinary");
-const { insertHashtags } = require("./hashtags");
+const { parser, cloudinary } = require("../config/cloudinary");
+const { insertHashtags, updateHashtags } = require("./hashtags");
 const { escapeHtml } = require("../utils/sanitize");
 
 const router = express.Router();
@@ -97,6 +97,9 @@ router.delete("/:id", auth, async (req, res) => {
     if (post.rows[0].user_id !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
+    const imageUrl = post.rows[0].image_url;
+    const publicId = imageUrl.split("/").pop().split(".")[0];
+    await cloudinary.uploader.destroy(`instaclone/${publicId}`);
     await pool.query("DELETE FROM posts WHERE id = $1", [req.params.id]);
     res.json({ message: "Post deleted" });
   } catch (err) {
@@ -114,10 +117,12 @@ router.put("/:id", auth, async (req, res) => {
     if (post.rows[0].user_id !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
+    const sanitizedCaption = caption ? escapeHtml(caption.trim()) : "";
     const updated = await pool.query(
       "UPDATE posts SET caption = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
-      [caption ? escapeHtml(caption.trim()) : "", req.params.id]
+      [sanitizedCaption, req.params.id]
     );
+    await updateHashtags(req.params.id, sanitizedCaption);
     res.json(updated.rows[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });
