@@ -118,11 +118,16 @@ export default function Profile() {
         </form>
       )}
       <div className="profile-posts">
-        <h2>Posts</h2>
         {posts.length === 0 ? <p>No posts yet.</p> : (
           <div className="posts-grid">
             {posts.map(post => (
-              <Post key={post.id} post={post} isOwner={isOwnProfile} onUpdate={fetchPosts} />
+              <Link to={`/post/${post.id}`} key={post.id} className="post-thumbnail">
+                <img src={post.image_url} alt="" />
+                <div className="post-thumbnail-overlay">
+                  <span>♥ {post.like_count}</span>
+                  <span>💬 {post.comment_count}</span>
+                </div>
+              </Link>
             ))}
           </div>
         )}

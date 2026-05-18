@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../context/AuthContext";
-import Post from "../components/Post";
 
 export default function Bookmarks() {
   const [posts, setPosts] = useState([]);
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchBookmarks();
@@ -20,15 +18,6 @@ export default function Bookmarks() {
     }
   };
 
-  const handleRemoveBookmark = async (postId) => {
-    try {
-      await axios.delete(`/api/bookmarks/${postId}`);
-      setPosts(posts.filter(p => p.id !== postId));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   return (
     <div className="bookmarks-page">
       <h1>Saved</h1>
@@ -37,19 +26,13 @@ export default function Bookmarks() {
       ) : (
         <div className="saved-posts-grid">
           {posts.map(post => (
-            <div key={post.id} className="saved-post-wrapper">
-              <Post
-                post={post}
-                isOwner={user?.id === post.user_id}
-                onUpdate={fetchBookmarks}
-              />
-              <button 
-                onClick={() => handleRemoveBookmark(post.id)}
-                className="remove-bookmark-btn"
-              >
-                Remove from Saved
-              </button>
-            </div>
+            <Link to={`/post/${post.id}`} key={post.id} className="post-thumbnail">
+              <img src={post.image_url} alt="" />
+              <div className="post-thumbnail-overlay">
+                <span>♥ {post.like_count}</span>
+                <span>💬 {post.comment_count}</span>
+              </div>
+            </Link>
           ))}
         </div>
       )}
