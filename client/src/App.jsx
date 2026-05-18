@@ -11,6 +11,7 @@ import PostPage from "./pages/PostPage";
 import Bookmarks from "./pages/Bookmarks";
 import Messages from "./pages/Messages";
 import StoryViewer from "./pages/StoryViewer";
+import FollowList from "./pages/FollowList";
 import "./index.css";
 
 const PrivateRoute = ({ children }) => {
@@ -38,6 +39,8 @@ function App() {
               <Route path="/profile/:userId" element={<PrivateRoute><Profile /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
               <Route path="/stories/:userId" element={<PrivateRoute><StoryViewer /></PrivateRoute>} />
+              <Route path="/profile/:userId/followers" element={<PrivateRoute><FollowList /></PrivateRoute>} />
+              <Route path="/profile/:userId/following" element={<PrivateRoute><FollowList /></PrivateRoute>} />
             </Routes>
           </div>
         </BrowserRouter>

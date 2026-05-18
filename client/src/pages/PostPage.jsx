@@ -20,12 +20,11 @@ export default function PostPage() {
 
   const fetchPost = async () => {
     try {
-      const res = await axios.get(`/api/posts`);
-      const found = res.data.find(p => p.id === parseInt(postId));
-      if (found) {
-        setPost(found);
-        setLiked(found.user_liked || false);
-        setLikeCount(parseInt(found.like_count || 0));
+      const res = await axios.get(`/api/posts/${postId}`);
+      if (res.data) {
+        setPost(res.data);
+        setLiked(res.data.user_liked || false);
+        setLikeCount(parseInt(res.data.like_count || 0));
       }
     } catch (err) {
       console.error(err);

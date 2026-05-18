@@ -18,6 +18,38 @@ router.get("/search/:query", auth, async (req, res) => {
   }
 });
 
+router.get("/:userId/followers", auth, async (req, res) => {
+  try {
+    const users = await pool.query(`
+      SELECT u.id, u.username, u.full_name, u.profile_picture,
+      EXISTS(SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = u.id) as is_following
+      FROM users u
+      JOIN follows f ON f.follower_id = u.id
+      WHERE f.following_id = $2
+      ORDER BY f.created_at DESC
+    `, [req.user.id, req.params.userId]);
+    res.json(users.rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/:userId/following", auth, async (req, res) => {
+  try {
+    const users = await pool.query(`
+      SELECT u.id, u.username, u.full_name, u.profile_picture,
+      EXISTS(SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = u.id) as is_following
+      FROM users u
+      JOIN follows f ON f.following_id = u.id
+      WHERE f.follower_id = $2
+      ORDER BY f.created_at DESC
+    `, [req.user.id, req.params.userId]);
+    res.json(users.rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.get("/suggestions", auth, async (req, res) => {
   console.log("=== /suggestions route hit ===");
   try {

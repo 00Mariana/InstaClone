@@ -45,6 +45,18 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const posts = await pool.query(getPostQuery("p.id = $4"), [req.user.id, 1, 0, req.params.id]);
+    if (posts.rows.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    res.json(posts.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.get("/feed", auth, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || DEFAULT_LIMIT;

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import Post from "../components/Post";
 
 export default function Profile() {
   const { userId } = useParams();
@@ -65,10 +64,10 @@ export default function Profile() {
       if (file) {
         const formData = new FormData();
         formData.append("image", file);
-        const res = await axios.post("/api/posts", formData, {
+        const res = await axios.post("/api/users/avatar", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        profile_picture = res.data.image_url;
+        profile_picture = res.data.profile_picture;
       }
       await axios.put("/api/users", { ...form, profile_picture });
       setEditing(false);
@@ -100,8 +99,8 @@ export default function Profile() {
           </div>
           <div className="profile-stats">
             <span><strong>{profile.posts_count}</strong> posts</span>
-            <span><strong>{profile.followers_count}</strong> followers</span>
-            <span><strong>{profile.following_count}</strong> following</span>
+            <Link to={`/profile/${targetUserId}/followers`}><strong>{profile.followers_count}</strong> followers</Link>
+            <Link to={`/profile/${targetUserId}/following`}><strong>{profile.following_count}</strong> following</Link>
           </div>
           {profile.full_name && <p className="profile-fullname">{profile.full_name}</p>}
           {profile.bio && <p className="profile-bio">{profile.bio}</p>}

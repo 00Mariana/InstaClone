@@ -1247,3 +1247,84 @@ a:hover { text-decoration: underline; }
   display: block;
   border: 2px solid var(--bg);
 }
+
+.follow-list-page {
+  max-width: 935px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.follow-list-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+
+.follow-list-header h1 {
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.follow-list-header .back-btn {
+  color: var(--text);
+  font-size: 24px;
+}
+
+.follow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.follow-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.follow-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.follow-user:hover { text-decoration: none; }
+
+.follow-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.follow-username {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.follow-fullname {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.btn-follow-small {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-follow-small.following {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
