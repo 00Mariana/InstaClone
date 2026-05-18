@@ -12,6 +12,7 @@ export default function PostPage() {
   const [newComment, setNewComment] = useState("");
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
     fetchPost();
@@ -25,6 +26,7 @@ export default function PostPage() {
         setPost(res.data);
         setLiked(res.data.user_liked || false);
         setLikeCount(parseInt(res.data.like_count || 0));
+        setBookmarked(res.data.bookmarked || false);
       }
     } catch (err) {
       console.error(err);
@@ -50,6 +52,20 @@ export default function PostPage() {
         const res = await axios.post(`/api/likes/${postId}`);
         setLiked(true);
         setLikeCount(res.data.count);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleBookmark = async () => {
+    try {
+      if (bookmarked) {
+        await axios.delete(`/api/bookmarks/${postId}`);
+        setBookmarked(false);
+      } else {
+        await axios.post(`/api/bookmarks/${postId}`);
+        setBookmarked(true);
       }
     } catch (err) {
       console.error(err);
@@ -108,6 +124,9 @@ export default function PostPage() {
         <div className="post-actions">
           <button onClick={handleLike} className={`btn-like ${liked ? "liked" : ""}`}>
             {liked ? "♥" : "♡"} {likeCount}
+          </button>
+          <button onClick={handleBookmark} className={`btn-bookmark ${bookmarked ? "bookmarked" : ""}`}>
+            {bookmarked ? "🔖" : "📄"}
           </button>
         </div>
         <form onSubmit={handleAddComment} className="comment-form">

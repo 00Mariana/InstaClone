@@ -121,7 +121,8 @@ router.get("/explore", auth, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || DEFAULT_LIMIT;
     const offset = parseInt(req.query.offset) || 0;
-    const posts = await pool.query(getPostQuery(""), [req.user.id, limit, offset]);
+    const whereClause = "p.user_id != $1";
+    const posts = await pool.query(getPostQuery(whereClause), [req.user.id, limit, offset]);
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
