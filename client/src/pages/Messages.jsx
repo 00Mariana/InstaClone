@@ -125,7 +125,7 @@ export default function Messages() {
                     key={u.id}
                     className="user-search-item"
                     onClick={() => {
-                      setSelectedUser(u.id);
+                      setSelectedUser(u.id.toString());
                       setSearchQuery(u.username);
                       setSearchResults([]);
                     }}

@@ -95,8 +95,6 @@ export default function PostPage() {
 
   if (!post) return <div className="loading">Loading...</div>;
 
-  const isOwner = user?.id === post.user_id;
-
   return (
     <div className="post-page">
       <div className="post-page-main">

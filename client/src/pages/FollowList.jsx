@@ -30,13 +30,13 @@ export default function FollowList() {
     setLoading(false);
   };
 
-  const handleFollow = async (userId) => {
+  const handleFollow = async (targetUserId) => {
     try {
-      const user = users.find(u => u.id === userId);
-      if (user?.is_following) {
-        await axios.delete(`/api/users/${userId}/follow`);
+      const targetUser = users.find(u => u.id === targetUserId);
+      if (targetUser?.is_following) {
+        await axios.delete(`/api/users/${targetUserId}/follow`);
       } else {
-        await axios.post(`/api/users/${userId}/follow`);
+        await axios.post(`/api/users/${targetUserId}/follow`);
       }
       fetchUsers();
     } catch (err) {
