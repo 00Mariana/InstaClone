@@ -168,7 +168,13 @@ export default function Messages() {
               />
               <div className="conversation-info">
                 <span className="conversation-username">{conv.other_username}</span>
-                <span className="conversation-preview">{conv.last_message}</span>
+                {conv.last_message_type === "post_share" && conv.last_message_post ? (
+                  <span className="conversation-preview-shared">
+                    <img src={conv.last_message_post.image_url} alt="" />
+                  </span>
+                ) : (
+                  <span className="conversation-preview">{conv.last_message}</span>
+                )}
               </div>
             </Link>
           ))
@@ -192,7 +198,14 @@ export default function Messages() {
                     alt=""
                     className="avatar-small"
                   />
-                  <div className="message-content">{msg.content}</div>
+                  <div className="message-content">
+                    <span>{msg.content}</span>
+                    {msg.type === "post_share" && msg.shared_post && (
+                      <Link to={`/post/${msg.shared_post.id}`} className="shared-post-preview">
+                        <img src={msg.shared_post.image_url} alt="" />
+                      </Link>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

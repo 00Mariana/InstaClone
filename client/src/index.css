@@ -1597,3 +1597,25 @@ a:hover { text-decoration: underline; }
   border-radius: 4px;
   cursor: pointer;
 }
+
+.shared-post-preview {
+  display: block;
+  margin-top: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 200px;
+}
+
+.shared-post-preview img {
+  width: 100%;
+  display: block;
+}
+
+.conversation-preview-shared img {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-left: 6px;
+}

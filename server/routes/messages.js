@@ -8,8 +8,10 @@ const router = express.Router();
 router.get("/", auth, async (req, res) => {
   try {
     const conversations = await pool.query(`
-      SELECT c.id, 
+      SELECT c.id,
         (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
+        (SELECT type FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_type,
+        (SELECT post_id FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_post_id,
         (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_at,
         u.id as other_user_id, u.username as other_username, u.profile_picture as other_profile_picture
       FROM conversations c
@@ -18,6 +20,25 @@ router.get("/", auth, async (req, res) => {
       JOIN users u ON cp2.user_id = u.id
       ORDER BY last_message_at DESC
     `, [req.user.id]);
+
+    const postIds = conversations.rows
+      .filter(r => r.last_message_type === "post_share" && r.last_message_post_id)
+      .map(r => r.last_message_post_id);
+
+    if (postIds.length > 0) {
+      const posts = await pool.query(
+        `SELECT id, image_url FROM posts WHERE id = ANY($1)`,
+        [postIds]
+      );
+      const postMap = {};
+      posts.rows.forEach(p => { postMap[p.id] = p; });
+      conversations.rows.forEach(r => {
+        if (r.last_message_type === "post_share" && r.last_message_post_id) {
+          r.last_message_post = postMap[r.last_message_post_id] || null;
+        }
+      });
+    }
+
     res.json(conversations.rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
